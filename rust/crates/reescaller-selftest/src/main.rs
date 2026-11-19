@@ -524,11 +524,18 @@ fn sondear_video(ffmpeg: &Path, video: &Path) -> Option<InfoVideo> {
         "-i".to_string(),
         video.display().to_string(),
     ];
-    // `ffmpeg -i` sin archivo de salida termina con código 1 (es normal):
-    // se lee el stderr tanto del éxito como del error.
-    let texto = match process::run(ffmpeg, &args) {
-        Ok(out) => out.stderr,
-        Err(reescaller_core::Error::CommandFailed { stderr, .. }) => stderr,
+    // `ffmpeg -i` sin archivo de salida termina con código 1 (es normal). Se lee la salida completa directamente:
+    // `process::run` resume el stderr de los comandos fallidos y, con FFmpeg 8 (más metadatos), las líneas `Stream` quedaban fuera.
+    let texto = match std::process::Command::new(ffmpeg)
+        .args(&args)
+        .stdin(std::process::Stdio::null())
+        .output()
+    {
+        Ok(o) => format!(
+            "{}\n{}",
+            String::from_utf8_lossy(&o.stderr),
+            String::from_utf8_lossy(&o.stdout)
+        ),
         Err(_) => String::new(),
     };
 

@@ -158,6 +158,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .tgl input:checked + i::after{transform:translateX(20px);background:#fff}
 
 .prog{flex:1;min-width:0}
+/* show() le pone display:flex: sin esto la línea de texto y la pista quedaban en fila y la pista se aplastaba a ancho 0 */
+#bar-run{flex-direction:column;justify-content:center}
+#bar-run .track{width:100%;flex:none}
 .prog .line{display:flex;align-items:baseline;gap:14px;margin-bottom:9px;font-size:13px;color:#c9d0e8}
 .prog .line .what{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prog .line b{color:#fff;font-variant-numeric:tabular-nums}

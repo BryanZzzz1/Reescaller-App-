@@ -56,6 +56,11 @@ Leyenda: 🔴 bloquea una versión pública · 🟡 importante · 🟢 deseable
 
 ## Hecho recientemente
 
+- Barra de progreso del instalador: no se veía (el contenedor se aplastaba a ancho 0); corregido y verificado con capturas.
+- Verificador (`reescaller-selftest`): 30/30. Dos comprobaciones fallaban con FFmpeg 8 por un falso negativo del propio verificador, no de la app.
+- `pack_setup.py` ignora carpetas de pruebas (`selftest_tmp`) para que no se cuelen en el instalador.
+- README con capturas reales, comparativas con fotos de la NASA y pruebas realizadas.
+
 - Retrato completo con ampliación automática, aclarado de fotos oscuras, fuerza ajustable y comparador con zoom (ronda 16.25).
 - Instalador propio con presentación de funciones, barra de progreso y desinstalador (rondas 16.25–16.26).
 - Auditoría de seguridad: token por ejecución, CSP, validación de subidas y rutas, proceso hijo ligado a la app.

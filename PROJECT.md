@@ -1087,6 +1087,12 @@ no comercial (revisar antes de un uso comercial).
   restricciones. `build_dist.ps1` copia todo a `dist\Reescaller\` (portable, ZIP e instaladores). **Firma de código**: `scripts\sign.ps1` firma con Authenticode + sello de tiempo si hay certificado
   (`REESCALLER_SIGN_PFX`/`_PASSWORD` o `REESCALLER_SIGN_THUMBPRINT`) y `build_dist`/`build_setup` lo llaman; sin certificado no hace nada. Probado con un certificado autofirmado temporal: el instalador queda firmado
   y el ZIP añadido sigue leyéndose (instalación y desinstalación correctas). Falta el certificado real (de pago o SignPath para código abierto).
+- **README con capturas y corrección del instalador** (ronda 16.29): README rehecho con banner, capturas reales de la app y del instalador (`docs/img/`), comparativas con fotos de la NASA (dominio público:
+  `S69-31741` y `as11-40-5903`; generadas con la API real: retrato 210→840 px en 6,8 s con DirectML, escena 480→1920 px en 7,8 s con Vulkan en la RX 6600), tabla de pruebas y roadmap. Las capturas se hicieron con
+  Edge sin ventana contra `reescaller-debug` (`REESCALLER_UI` + script inyectado) y se revisaron para no mostrar rutas ni nombres de usuario. **Hallazgos al capturar**: (1) la **barra de progreso del instalador no se
+  veía**: `show()` pone `display:flex` en `#bar-run` y la pista quedaba en fila con ancho 0 → CSS `#bar-run{flex-direction:column}` (instalador reconstruido y reemplazado en la release v0.3.0); (2) `reescaller-selftest`
+  daba 26/30: el sondeo de video leía el stderr *resumido* de `process::run` (solo las últimas 5 líneas) y con FFmpeg 8 las líneas `Stream` quedaban fuera → ahora lee la salida completa; ahora **30/30**; (3) el
+  verificador escribe en `<proyecto>\selftest_tmp` y, ejecutado mientras se empaquetaba, 87 archivos de prueba se colaron en el instalador → `pack_setup.py` ignora esa carpeta.
 - Campos nuevos en `config.json`: `language` (`auto` por defecto) y `animated_theme` (`true`); ambos con valor por defecto para que
   las configuraciones antiguas sigan cargando.
 

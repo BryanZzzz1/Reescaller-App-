@@ -28,7 +28,9 @@ def main():
         z.write(ui, "ui/reescaller-setup.exe")
         z.write(loader, "ui/WebView2Loader.dll")
         z.write(wv2, "redist/MicrosoftEdgeWebview2Setup.exe")
-        for root, _dirs, files in os.walk(app):
+        for root, dirs, files in os.walk(app):
+            # restos de pruebas (p. ej. reescaller-selftest escribe en selftest_tmp) nunca van en el instalador
+            dirs[:] = [d for d in dirs if d.lower() not in ("selftest_tmp", "__pycache__")]
             for f in sorted(files):
                 full = os.path.join(root, f)
                 rel = os.path.relpath(full, app).replace(os.sep, "/")
