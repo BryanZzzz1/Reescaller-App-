@@ -1,0 +1,17 @@
+# Interfaz gráfica
+customtkinter>=5.2.0
+Pillow>=10.0.0
+
+# Visión por computador y arrays
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# IA: GFPGAN y RestoreFormer++ (necesitan torch)
+torch>=2.0.0
+torchvision>=0.15.0
+basicsr>=1.4.2
+gfpgan>=1.3.8
+
+# Nota: para GPU NVIDIA instala torch con el índice de CUDA:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Si tu GPU no es NVIDIA o no tienes CUDA, la versión CPU funciona igual.

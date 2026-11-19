@@ -1,0 +1,17 @@
+[package]
+name = "reescaller-selftest"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Verificador automático del port a Rust: comprueba entorno, reescalado controlado, peso, lote y video."
+
+[[bin]]
+name = "reescaller-selftest"
+path = "src/main.rs"
+
+[dependencies]
+reescaller-core = { path = "../reescaller-core" }
+anyhow.workspace = true
+serde_json.workspace = true
+image.workspace = true

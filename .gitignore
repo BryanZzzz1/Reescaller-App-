@@ -1,0 +1,61 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Temporales de la app
+tmp_frames/
+out_frames/
+*.log
+
+# Assets pesados del proyecto (~750 MB: binarios + checkpoints).
+# Se distribuyen aparte (release de GitHub / Git LFS), no en el repositorio.
+models/
+
+# Pesos que descarga facexlib/gfpgan en tiempo de ejecución
+gfpgan/
+
+# Configuración local de usuario
+config.json
+config.local.json
+
+# Sistema operativo / editores
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Rust
+rust/target/
+
+# Artefactos de prueba
+test_samples/
+test_batch/
+debug_uploads/
+
+# Distribución y compilaciones alternativas
+dist/
+rust/target/
+rust/target-dist/
+selftest_tmp/
+debug_uploads/
+
+# Instalador: el bootstrapper de WebView2 se descarga y verifica al empaquetar (scripts\build_setup.ps1)
+installer/redist/
+
+# Prueba de viabilidad ONNX (archivos pesados / generados)
+experimental/onnx-faces/models/
+experimental/onnx-faces/pydeps/
+experimental/onnx-faces/bin/
+experimental/onnx-faces/samples/
+experimental/onnx-faces/out/
+experimental/onnx-faces/rust/target/
+experimental/onnx-faces/edge/

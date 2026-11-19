@@ -1,115 +1,155 @@
-<br>
 <div align="center">
-  <img src="https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/CustomTkinter-darkgreen?style=for-the-badge" alt="CustomTkinter">
-  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch">
-  <img src="https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV">
+
+# Reescaller
+
+**Mejora tus imágenes y videos con inteligencia artificial. Todo en tu equipo, sin subir nada a internet.**
+
+![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.0-8b5cf6?style=for-the-badge)
+![Rust](https://img.shields.io/badge/Rust-1.75+-dea584?style=for-the-badge&logo=rust&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-10%20(1809)%20%7C%2011-0078d4?style=for-the-badge&logo=windows&logoColor=white)
+
 </div>
 
-<br>
+Reescaller es una aplicación de escritorio para Windows escrita en **Rust**. Reescala y mejora fotos con **Real-ESRGAN**, restaura retratos completos (rostro, pelo, ropa y fondo) con **GFPGAN / RestoreFormer++** ejecutados de forma nativa con ONNX Runtime, y procesa video fotograma a fotograma con **FFmpeg**. La interfaz es una ventana propia con estilo de cristal, temas y 10 idiomas.
 
-<div align="center">
-  <h1>Herramienta de Mejora Visual 🖼️</h1>
-  <p>Una aplicación de escritorio para mejorar la calidad de imágenes y videos usando IA.</p>
-</div>
-
-<br>
+> Esta es la versión en Rust. La aplicación original en Python/CustomTkinter sigue en el repositorio como código legado ([ver más abajo](#código-legado-en-python)).
 
 ---
 
-## 📖 Tabla de Contenidos
+## Contenido
 
-* [Acerca del Proyecto](#-acerca-del-proyecto)
-* [Características Principales](#-características-principales)
-* [Requisitos](#️-requisitos)
-    * [Software](#software)
-    * [Archivos de Modelo](#archivos-de-modelo)
-* [Instalación y Uso](#️-instalación-y-uso)
-    * [1. Preparar el Entorno](#1-preparar-el-entorno)
-    * [2. Instalar Dependencias de Python](#2-instalar-dependencias-de-python)
-    * [3. Ejecutar la Aplicación](#3-ejecutar-la-aplicación)
-    * [4. Configuración Inicial](#4-configuración-inicial)
-* [Contacto](#-contacto)
+- [Características](#características)
+- [Instalación](#instalación)
+- [Requisitos](#requisitos)
+- [Uso](#uso)
+- [Compilar desde el código fuente](#compilar-desde-el-código-fuente)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Documentación](#documentación)
+- [Estado y limitaciones](#estado-y-limitaciones)
+- [Código legado en Python](#código-legado-en-python)
 
 ---
 
-## 🚀 Acerca del Proyecto
+## Características
 
-La **Herramienta de Mejora Visual** es una aplicación de escritorio con una interfaz gráfica (GUI) que simplifica el proceso de mejorar la calidad de imágenes y videos. La aplicación automatiza el uso de potentes modelos de inteligencia artificial como **Real-ESRGAN**, **GFPGAN** y **RestoreFormer** para ofrecer una solución completa, rápida y fácil de usar para mejorar el contenido visual.
+- **Imágenes**: escala libre de 0,25× a 8×, modos «siempre», «solo si hace falta» y «solo mejorar», mezcla de mejora 0–100 %, nitidez extra y peso de salida por calidad fija o por **tamaño objetivo en KB**. Respeta la orientación EXIF de las fotos de móvil.
+- **Retrato completo**: restaura el rostro y mejora también pelo, ropa y fondo. Amplía automáticamente ×4 las fotos pequeñas, aclara las fotos oscuras, permite ajustar la fuerza de la restauración y trae un **comparador con deslizador y zoom**.
+- **Video**: mejora fotograma a fotograma conservando el audio y el FPS originales; convierte a MP4, WebM, GIF o MP3.
+- **Carpetas**: procesa lotes completos y guarda los resultados en una subcarpeta `Mejoradas` con el sufijo `_mejorado`.
+- **Modo fácil y modo avanzado**: el modo fácil analiza la imagen y propone ajustes; el avanzado expone todos los parámetros.
+- **Personalización**: modo claro/oscuro, ocho paletas, tema propio con selector de color, fondos animados, icono por tema y 10 idiomas.
+- **Compatibilidad de hardware**: detecta CPU, RAM y GPU (NVIDIA GTX 600+, AMD RX 400+, Intel Arc) y avisa si falta un driver con Vulkan.
+- **Privacidad**: todo se procesa localmente; la app solo escucha en `127.0.0.1` con un token por ejecución.
+- **Instalador propio** con presentación de funciones y barra de progreso, instalación por usuario (sin administrador) y desinstalador.
 
----
+## Instalación
 
-## ✨ Características Principales
+1. Descarga `Reescaller-0.3.0-Setup.exe`.
+2. Ejecútalo y pulsa **Aceptar e instalar**. En **Opciones** puedes cambiar la carpeta, omitir la restauración de rostros (≈ 800 MB) y decidir si se crea el acceso directo del escritorio.
+3. Al terminar, pulsa **Abrir Reescaller**.
 
-* **Mejora de Imagen (por lote o individual):** Escala la resolución y mejora la calidad de imágenes con **Real-ESRGAN**.
-* **Restauración de Rostros:** Corrige y mejora los rostros con modelos de IA de última generación (**GFPGAN** y **RestoreFormer**).
-* **Mejora de Video:** Procesa videos completos fotograma a fotograma para una mejora integral, volviendo a fusionar los fotogramas mejorados con el audio original.
-* **Herramientas de Video Adicionales:** Funciones integradas para convertir y recortar videos fácilmente.
-* **Interfaz Intuitiva:** Interfaz de usuario limpia y moderna construida con **CustomTkinter**.
+Se instala en `%LOCALAPPDATA%\Programs\Reescaller`, instala Microsoft Edge WebView2 Runtime si falta y se desinstala desde *Configuración → Aplicaciones instaladas*.
 
-<br>
-## 📸 Capturas de Pantalla
+También hay una versión **portable** (`Reescaller-0.3.0-win64.zip`): descomprime y ejecuta `Reescaller.exe`.
 
-| Pantalla Principal | Pestaña de Configuración |
-| :-----------------: | :--------------------: |
-| <img src="https://github.com/user-attachments/assets/50967970-f747-41ee-82bf-226e293dc7c3" width="100%" alt="Captura de la pantalla principal" /> | <img src="https://github.com/user-attachments/assets/d4394aca-e73e-4c62-82b2-f87e6f28c589" width="100%" alt="Captura de la pestaña de configuración" /> |
+Instalación silenciosa para scripts:
 
-_Interfaz principal y configuración de la aplicación._
-
-<br>
-
-
-## ⚙️ Requisitos
-
-Asegúrate de tener el siguiente software instalado y los archivos necesarios en la carpeta principal de tu proyecto.
-
-### Software
-
-* **Python 3.10+**: La aplicación está desarrollada en Python 3.10 o versiones posteriores.
-* **FFmpeg**: Necesario para todas las operaciones de video (extracción de fotogramas, conversión, etc.). El ejecutable `ffmpeg.exe` debe estar en la carpeta raíz del proyecto o su ruta debe configurarse manualmente.
-* **Real-ESRGAN-ncnn-vulkan**: El motor principal para la mejora de imágenes. El ejecutable `realesrgan-ncnn-vulkan.exe` también debe estar en la carpeta raíz.
-
-### Archivos de Modelo
-
-Los modelos de IA para la restauración de rostros son necesarios para que las funciones correspondientes operen. Deben estar ubicados en la carpeta `models/`.
-* `GFPGANv1.4.pth`
-* `RestoreFormer++.ckpt`
-
----
-
-## 🛠️ Instalación y Uso
-
-### 1. Preparar el Entorno
-
-Se recomienda encarecidamente usar un **entorno virtual** para evitar conflictos de dependencias.
-```bash
-# Crear el entorno virtual
-python -m venv venv
-
-# Activar el entorno virtual
-# En Windows
-venv\Scripts\activate
-# En macOS/Linux
-source venv/bin/activate
+```bat
+Reescaller-0.3.0-Setup.exe /S --dir="C:\Apps\Reescaller" [--no-faces] [--no-desktop]
+"C:\Apps\Reescaller\Uninstall.exe" /S [--purge]
 ```
-2. Instalar Dependencias de Python
 
-Una vez que el entorno virtual esté activo, instala todas las bibliotecas de Python necesarias con pip.
-```bash
-pip install customtkinter Pillow opencv-python numpy
-pip install torch torchvision torchaudio
-pip install basicsr gfpgan
+> El ejecutable aún **no está firmado**: Windows SmartScreen puede mostrar un aviso la primera vez.
+
+## Requisitos
+
+| | Mínimo |
+|---|---|
+| Sistema | Windows 10 (1809) o Windows 11, 64 bits |
+| Ventana | Microsoft Edge WebView2 Runtime (el instalador lo añade si falta) |
+| Mejora por IA | GPU con **Vulkan** y driver actualizado: NVIDIA GTX 600+, AMD RX 400+ o Intel Arc |
+| Espacio | ≈ 1 GB con restauración de rostros; ≈ 200 MB sin ella |
+
+Sin GPU compatible la app funciona, pero sin la mejora por IA. La restauración de rostros usa DirectML y se ha probado solo en AMD (ver [estado y limitaciones](#estado-y-limitaciones)).
+
+## Uso
+
+- Arrastra una imagen a la ventana, pégala con `Ctrl+V` o elige un archivo.
+- **Imagen / Carpeta / Video / Rostros** están en la barra lateral; en el modo fácil basta con elegir un resultado y pulsar el botón.
+- La configuración se guarda en `%APPDATA%\Reescaller\config.json`; los registros y la caché de la ventana, en `%LOCALAPPDATA%\Reescaller\`.
+
+Herramientas de línea de comandos (carpeta de la app):
+
+```bat
+reescaller-cli.exe doctor
+reescaller-cli.exe upscale --input foto.jpg --target 1.5 --weight-quality 88
+reescaller-cli.exe batch --input entrada --output salida --target 2
 ```
----
-3. Ejecutar la Aplicación
 
-Con los ejecutables de FFmpeg y Real-ESRGAN en la carpeta correcta y las dependencias instaladas, puedes iniciar la aplicación:
-```bash
-python All.py
+## Compilar desde el código fuente
+
+**Necesitas**: Rust 1.75+ con la toolchain `stable-x86_64-pc-windows-gnu` y [WinLibs MinGW](https://winlibs.com/) (`winget install BrechtSanders.WinLibs.POSIX.UCRT`). Opcional: Python 3 (empaquetado del instalador) e [Inno Setup 6](https://jrsoftware.org/isinfo.php) (instalador alternativo).
+
+**Activos que no están en el repositorio** (carpeta `models/`, ≈ 800 MB, se distribuyen aparte):
+`realesrgan-ncnn-vulkan.exe`, `ffmpeg.exe` y `models/*.bin|*.param`. Para los rostros en ONNX, ejecuta `experimental/onnx-faces/export_onnx.py`, que genera los modelos y librerías de `experimental/onnx-faces`.
+
+> `rust/build.bat` contiene la ruta de WinLibs de la máquina del autor; ajusta la variable `MINGW` a tu instalación.
+
+```bat
+:: compilar todo
+rust\build.bat build --release
+
+:: comprobaciones (31 tests unitarios + verificador de entorno)
+rust\build.bat test --workspace --release
+probar.bat
+
+:: carpeta portable + ZIP + instalador propio (+ Inno si está instalado)
+crear_exe.bat                       :: equivale a scripts\build_dist.ps1
+powershell -ExecutionPolicy Bypass -File scripts\build_dist.ps1 -WithOnnx
 ```
----
-🤝 Contacto
 
-Si tienes alguna pregunta, sugerencia o encuentras algún problema, por favor, abre un issue en este repositorio.
+El resultado queda en `dist\`: `Reescaller\` (portable), `Reescaller-<ver>-win64.zip`, `Reescaller-<ver>-Setup.exe` y `Reescaller-<ver>-Setup-Inno.exe`.
 
+Interfaz de depuración en el navegador (`http://127.0.0.1:7878`): `iniciar_debug.bat`.
 
+## Estructura del repositorio
+
+```
+rust/                        workspace de Cargo
+  crates/reescaller-core/    dominio: escalado, mezcla, peso, lote, video, rostros, hardware
+  crates/reescaller-cli/     línea de comandos (reescaller-cli.exe)
+  crates/reescaller-app/     aplicación de escritorio (Reescaller.exe) + servidor local + interfaz (index.html)
+  crates/reescaller-selftest/ verificador de entorno
+  crates/reescaller-setup/   instalador y desinstalador (lanzador + interfaz WebView2)
+scripts/                     build_dist.ps1, build_setup.ps1, pack_setup.py, puente restore_face.py
+installer/                   instalador alternativo (Inno Setup) y sus imágenes
+experimental/onnx-faces/     exportación de los modelos de rostros a ONNX
+docs/                        auditoría y ruta de migración nativa
+PROJECT.md                   bitácora técnica detallada del proyecto
+ROADMAP.md                   próximos pasos
+All.py, requirements.txt     aplicación original en Python (legado)
+```
+
+## Documentación
+
+- [`ROADMAP.md`](ROADMAP.md): qué falta y qué viene.
+- [`PROJECT.md`](PROJECT.md): arquitectura, decisiones, pruebas y registro de cada ronda de cambios.
+- [`docs/AUDITORIA.md`](docs/AUDITORIA.md) y [`docs/RUTA_MIGRACION_NATIVA.md`](docs/RUTA_MIGRACION_NATIVA.md).
+- [`rust/README.md`](rust/README.md): detalle del workspace.
+
+## Estado y limitaciones
+
+- Versión **0.3.0**, en pruebas. El hardware probado es un PC con CPU Intel y GPU AMD RX 6600 (Windows 11): **NVIDIA, Intel Arc y portátiles con gráfica híbrida no se han probado**, ni Windows 10 en un equipo limpio.
+- El ejecutable y el instalador no están firmados.
+- Al guardar en PNG se pierde el canal alfa, y en lotes dos archivos con el mismo nombre y distinta extensión (`a.png` y `a.jpg`) pueden pisarse.
+- Revisa las licencias de los componentes de terceros (Real-ESRGAN, FFmpeg, GFPGAN, RestoreFormer++, ONNX Runtime, DirectML) antes de redistribuir.
+
+Si encuentras un problema, abre un *issue* indicando tu GPU, versión de Windows y el contenido de `reescaller-cli.exe doctor`.
+
+## Código legado en Python
+
+`All.py` es la aplicación original (CustomTkinter + PyTorch). Se conserva como referencia y no recibe novedades. Para ejecutarla: Python 3.10/3.11, `pip install -r requirements.txt`, `ffmpeg.exe`, `realesrgan-ncnn-vulkan.exe` y los pesos `GFPGANv1.4.pth` / `RestoreFormer++.ckpt` en `models/`, y luego `python All.py`.
+
+## Licencia
+
+El workspace declara licencia **MIT** en `rust/Cargo.toml`. Falta añadir el archivo `LICENSE` con el titular de los derechos (ver [`ROADMAP.md`](ROADMAP.md)).

@@ -1,0 +1,21 @@
+[package]
+name = "reescaller-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Núcleo de la Herramienta de Mejora Visual: configuración, procesos, reescalado, lote y video."
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+image.workspace = true
+dirs.workspace = true
+tempfile.workspace = true
+log.workspace = true
+ort = { version = "=2.0.0-rc.10", default-features = false, features = ["load-dynamic", "directml"] }
+
+[dev-dependencies]
+image.workspace = true

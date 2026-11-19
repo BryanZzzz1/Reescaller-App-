@@ -1,0 +1,27 @@
+[package]
+build = "build.rs"
+name = "reescaller-setup"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Instalador y desinstalador de Reescaller (ventana propia con el estilo de la app)."
+
+[[bin]]
+name = "reescaller-setup"
+path = "src/main.rs"
+
+# Lo que descarga el usuario: lanzador sin DLL + ZIP (ver scripts\pack_setup.py).
+[[bin]]
+name = "reescaller-setup-launcher"
+path = "src/launcher.rs"
+
+[dependencies]
+serde_json.workspace = true
+image.workspace = true
+tao = "0.31"
+wry = "0.47"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"

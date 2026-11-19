@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Reescaller</title>
+<style>
+@property --c1{syntax:'<color>';inherits:true;initial-value:#8b5cf6}
+@property --c2{syntax:'<color>';inherits:true;initial-value:#22d3ee}
+@property --c3{syntax:'<color>';inherits:true;initial-value:#f472b6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;user-select:none;-webkit-user-select:none}
+body{--c1:#8b5cf6;--c2:#22d3ee;--c3:#f472b6;background:#0a0d14;color:#eef1fb;font:14px/1.5 "Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+  transition:--c1 1.4s ease,--c2 1.4s ease,--c3 1.4s ease}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.hidden{display:none !important}
+.win{position:absolute;inset:0;border:1px solid rgba(255,255,255,.14);overflow:hidden;background:linear-gradient(165deg,#090b12 0%,#0d1020 60%,#141026 100%)}
+
+/* manchas de color en movimiento (el fondo «cristal» de la app) */
+.bg{position:absolute;inset:-20%;filter:blur(70px);opacity:.75}
+.bg i{position:absolute;display:block;border-radius:50%;mix-blend-mode:screen}
+.bg i:nth-child(1){width:55%;height:62%;left:4%;top:-6%;background:radial-gradient(circle,var(--c1),transparent 65%);animation:d1 13s ease-in-out infinite}
+.bg i:nth-child(2){width:48%;height:55%;right:2%;top:10%;background:radial-gradient(circle,var(--c2),transparent 65%);animation:d2 16s ease-in-out infinite}
+.bg i:nth-child(3){width:46%;height:56%;left:30%;bottom:-18%;background:radial-gradient(circle,var(--c3),transparent 65%);animation:d3 19s ease-in-out infinite}
+@keyframes d1{0%,100%{transform:translate(0,0) scale(1)}35%{transform:translate(18%,10%) scale(1.25)}70%{transform:translate(6%,-12%) scale(.85)}}
+@keyframes d2{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-22%,14%) scale(1.2)}75%{transform:translate(-6%,-10%) scale(.9)}}
+@keyframes d3{0%,100%{transform:translate(0,0) scale(1)}45%{transform:translate(16%,-18%) scale(1.3)}80%{transform:translate(-18%,-6%) scale(.85)}}
+
+.top{position:absolute;left:0;right:0;top:0;height:46px;display:flex;align-items:center;gap:8px;padding:0 10px 0 22px;z-index:20}
+.top .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px;opacity:.9}
+.top .brand svg{width:22px;height:22px}
+.top .sp{flex:1;height:100%}
+.top .wc{width:40px;height:30px;border-radius:9px;display:grid;place-items:center;color:#c4cbe3;transition:background .15s,color .15s}
+.top .wc:hover{background:rgba(255,255,255,.14);color:#fff}
+.top .wc.close:hover{background:#e5484d}
+.top .wc svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+
+.stage{position:absolute;left:0;right:0;top:0;bottom:104px;overflow:hidden}
+.bar{position:absolute;left:0;right:0;bottom:0;height:104px;background:rgba(7,9,15,.78);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);z-index:15;padding:0 34px;display:flex;align-items:center;gap:20px}
+
+/* ---------- bienvenida ---------- */
+.view{position:absolute;inset:0;display:none}
+.view.on{display:block}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;height:100%;padding:70px 40px 10px 58px;gap:26px;align-items:center}
+.hero .logo{width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--c1),var(--c2));display:grid;place-items:center;
+  box-shadow:0 18px 50px color-mix(in srgb,var(--c1) 55%,transparent);animation:pop .7s cubic-bezier(.2,1.4,.4,1) both}
+.hero .logo svg{width:58%;height:58%}
+.hero h1{margin:22px 0 8px;font-size:56px;line-height:1;letter-spacing:-1.5px;font-weight:700;animation:rise .7s .08s both}
+.hero p.lead{margin:0 0 22px;font-size:17px;color:#c9d0e8;max-width:380px;animation:rise .7s .16s both}
+.chips{display:flex;flex-wrap:wrap;gap:9px;animation:rise .7s .24s both}
+.chip{padding:6px 13px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#dfe4f6}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+
+/* ventana de ejemplo con comparador antes/después */
+.mock{position:relative;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(12px);padding:12px;
+  box-shadow:0 26px 70px rgba(0,0,0,.5);animation:rise .8s .2s both}
+.mock .dots{display:flex;gap:6px;margin-bottom:10px}
+.mock .dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.28)}
+.art{position:relative;height:250px;border-radius:12px;overflow:hidden;background:#111}
+.art .layer{position:absolute;inset:0}
+.art .before{background:radial-gradient(circle at 28% 30%,#8b7ba8 0,transparent 40%),radial-gradient(circle at 72% 62%,#7c9aa6 0,transparent 44%),linear-gradient(135deg,#5b5470,#58707a);filter:blur(7px) saturate(.7)}
+.art .after{background:radial-gradient(circle at 28% 30%,var(--c3) 0,transparent 40%),radial-gradient(circle at 72% 62%,var(--c2) 0,transparent 44%),linear-gradient(135deg,var(--c1),color-mix(in srgb,var(--c2) 60%,#000));
+  clip-path:inset(0 0 0 50%);animation:wipe 5.5s ease-in-out infinite}
+.art .div{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 14px rgba(0,0,0,.6);left:50%;animation:wipeline 5.5s ease-in-out infinite}
+.art .div::after{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));border:3px solid #fff}
+.art .tag{position:absolute;top:10px;padding:2px 10px;border-radius:99px;background:rgba(10,12,20,.7);font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.art .tag.l{left:10px}.art .tag.r{right:10px}
+@keyframes wipe{0%,100%{clip-path:inset(0 0 0 85%)}50%{clip-path:inset(0 0 0 12%)}}
+@keyframes wipeline{0%,100%{left:85%}50%{left:12%}}
+.mock .meta{display:flex;gap:8px;margin-top:10px}
+.mock .meta span{padding:3px 10px;border-radius:99px;font-size:11px;background:rgba(255,255,255,.1)}
+
+/* ---------- instalando: presentación de funciones ---------- */
+.slides{position:absolute;inset:0}
+.slide{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:28px;padding:64px 54px 24px 64px;opacity:0;transform:translateX(34px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.slide.on{opacity:1;transform:none}
+.slide .kick{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--c2)}
+.slide h2{margin:8px 0 12px;font-size:38px;line-height:1.08;letter-spacing:-.8px}
+.slide p{margin:0;font-size:16px;color:#c9d0e8;max-width:380px}
+.vis{position:relative;height:300px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(12px);overflow:hidden;box-shadow:0 26px 70px rgba(0,0,0,.45)}
+.dotsnav{position:absolute;left:64px;bottom:22px;display:flex;gap:8px;z-index:5}
+.dotsnav i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.28);transition:all .4s;cursor:pointer;position:relative}
+.dotsnav i::before{content:"";position:absolute;inset:-9px -4px}
+.dotsnav i.on{width:26px;background:linear-gradient(90deg,var(--c1),var(--c2))}
+/* escenas */
+.v1 .art{position:absolute;inset:14px;height:auto}
+.v2{display:grid;place-items:center}
+.v2 .ring{position:absolute;width:210px;height:210px;border-radius:50%;border:2px solid color-mix(in srgb,var(--c2) 60%,transparent);animation:ring 2.8s ease-out infinite}
+.v2 .ring.b{animation-delay:1.4s}
+@keyframes ring{from{transform:scale(.5);opacity:.9}to{transform:scale(1.3);opacity:0}}
+.v2 .face{width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));display:grid;place-items:center;box-shadow:0 0 60px color-mix(in srgb,var(--c1) 60%,transparent)}
+.v2 .face svg{width:70px;height:70px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round}
+.v2 .tags{position:absolute;inset:0}
+.v2 .tags span{position:absolute;padding:5px 13px;border-radius:99px;background:rgba(10,12,20,.7);border:1px solid rgba(255,255,255,.2);font-size:12px;font-weight:600;animation:chipin .7s both}
+.v2 .tags span:nth-child(1){left:34px;top:48px;animation-delay:.4s}
+.v2 .tags span:nth-child(2){right:30px;top:96px;animation-delay:.9s}
+.v2 .tags span:nth-child(3){left:60px;bottom:42px;animation-delay:1.4s}
+@keyframes chipin{from{opacity:0;transform:translateY(12px) scale(.8)}to{opacity:1;transform:none}}
+.v3 .film{position:absolute;left:0;right:0;top:50px;height:120px;display:flex;gap:10px;animation:film 7s linear infinite;width:200%}
+.v3 .film i{flex:0 0 110px;border-radius:10px;background:linear-gradient(135deg,var(--c1),var(--c2));opacity:.85;border:2px solid rgba(255,255,255,.3)}
+.v3 .film i:nth-child(even){background:linear-gradient(135deg,var(--c3),var(--c1))}
+@keyframes film{to{transform:translateX(-50%)}}
+.v3 .fmt{position:absolute;left:0;right:0;bottom:34px;display:flex;justify-content:center;gap:12px}
+.v3 .fmt b{padding:6px 16px;border-radius:12px;background:rgba(10,12,20,.7);border:1px solid rgba(255,255,255,.22);animation:fmt 3.2s ease-in-out infinite}
+.v3 .fmt b:nth-child(2){animation-delay:.5s}.v3 .fmt b:nth-child(3){animation-delay:1s}.v3 .fmt b:nth-child(4){animation-delay:1.5s}
+@keyframes fmt{0%,100%{transform:none}50%{transform:translateY(-8px);background:linear-gradient(135deg,var(--c1),var(--c2))}}
+.v4{display:flex;flex-wrap:wrap;gap:16px;align-content:center;justify-content:center;padding:26px}
+.v4 i{width:62px;height:62px;border-radius:18px;border:2px solid rgba(255,255,255,.25);animation:sw 4.2s ease-in-out infinite;display:block}
+.v4 i:nth-child(1){background:linear-gradient(135deg,#8b5cf6,#22d3ee)}.v4 i:nth-child(2){background:linear-gradient(135deg,#c9349b,#ff9b55);animation-delay:.3s}
+.v4 i:nth-child(3){background:linear-gradient(135deg,#18961c,#9bf00b);animation-delay:.6s}.v4 i:nth-child(4){background:linear-gradient(135deg,#0070d1,#ec407a);animation-delay:.9s}
+.v4 i:nth-child(5){background:linear-gradient(135deg,#d62814,#ffc828);animation-delay:1.2s}.v4 i:nth-child(6){background:linear-gradient(135deg,#ff224a,#1cdeee);animation-delay:1.5s}
+.v4 i:nth-child(7){background:linear-gradient(135deg,#8a40e0,#70ff48);animation-delay:1.8s}.v4 i:nth-child(8){background:conic-gradient(#ef4444,#f59e0b,#84cc16,#14b8a6,#3b82f6,#a855f7,#ef4444);animation-delay:2.1s}
+@keyframes sw{0%,100%{transform:none}50%{transform:translateY(-12px) scale(1.12);box-shadow:0 14px 30px rgba(0,0,0,.4)}}
+.v5{display:grid;place-items:center}
+.v5 .lock{width:120px;height:120px;border-radius:34px;background:linear-gradient(135deg,var(--c1),var(--c2));display:grid;place-items:center;animation:pulse 2.4s ease-in-out infinite}
+.v5 .lock svg{width:60px;height:60px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.v5 .tags{position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:10px}
+.v5 .tags span{padding:5px 13px;border-radius:99px;background:rgba(10,12,20,.7);border:1px solid rgba(255,255,255,.2);font-size:12px;font-weight:600}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ---------- final / error ---------- */
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:60px 70px 10px}
+.check{width:104px;height:104px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));display:grid;place-items:center;box-shadow:0 0 70px color-mix(in srgb,var(--c1) 60%,transparent);animation:pop .7s cubic-bezier(.2,1.4,.4,1) both}
+.check svg{width:54px;height:54px;fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:draw .7s .4s forwards}
+.check.err{background:linear-gradient(135deg,#ef4444,#f59e0b)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.center h2{margin:26px 0 8px;font-size:38px;letter-spacing:-.8px;animation:rise .7s .3s both}
+.center p{margin:0;max-width:520px;color:#c9d0e8;font-size:16px;animation:rise .7s .4s both}
+.note{margin-top:18px;max-width:560px;padding:10px 16px;border-radius:12px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);color:#fde7a6;font-size:13px;text-align:left;animation:rise .7s .5s both}
+.errbox{margin-top:16px;max-width:600px;padding:10px 16px;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45);color:#fecaca;font-size:13px;text-align:left;word-break:break-word}
+
+/* ---------- barra inferior ---------- */
+.btn{padding:13px 28px;border-radius:14px;font-weight:700;font-size:15px;transition:transform .15s,box-shadow .2s,filter .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 30px color-mix(in srgb,var(--c1) 50%,transparent);color:#fff}
+.btn.ghost{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18)}
+.opts-toggle{display:flex;align-items:center;gap:8px;color:#c9d0e8;font-size:14px;padding:8px 10px;border-radius:10px}
+.opts-toggle:hover{background:rgba(255,255,255,.08);color:#fff}
+.opts-toggle svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;transition:transform .25s}
+.opts-toggle.open svg{transform:rotate(180deg)}
+.bar .sp{flex:1}
+.bar .legal{font-size:12px;color:#8e98b8;max-width:300px;line-height:1.4}
+
+.opts{position:absolute;left:24px;right:24px;bottom:116px;z-index:30;border-radius:18px;background:rgba(14,17,28,.94);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(22px);padding:18px 22px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6);transform:translateY(20px);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.2,.8,.2,1)}
+.opts.open{transform:none;opacity:1;pointer-events:auto}
+.opts h3{margin:0 0 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8e98b8}
+.row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.row input[type=text]{flex:1;min-width:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:10px 13px;color:#fff;font:inherit;user-select:text;-webkit-user-select:text}
+.check-row{display:flex;align-items:center;gap:12px;padding:8px 2px;cursor:pointer}
+.check-row b{font-weight:600}.check-row small{display:block;color:#8e98b8;font-size:12px}
+.tgl{position:relative;flex:none;width:46px;height:26px}
+.tgl input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:2}
+.tgl i{position:absolute;inset:0;border-radius:99px;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.3);transition:all .25s}
+.tgl i::after{content:"";position:absolute;left:3px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:#9aa3c2;transition:transform .3s cubic-bezier(.3,1.4,.5,1),background .2s}
+.tgl input:checked + i{background:var(--c1);border-color:var(--c1);box-shadow:0 0 14px color-mix(in srgb,var(--c1) 50%,transparent)}
+.tgl input:checked + i::after{transform:translateX(20px);background:#fff}
+
+.prog{flex:1;min-width:0}
+.prog .line{display:flex;align-items:baseline;gap:14px;margin-bottom:9px;font-size:13px;color:#c9d0e8}
+.prog .line .what{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prog .line b{color:#fff;font-variant-numeric:tabular-nums}
+.track{height:9px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+.fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width .25s ease;position:relative;overflow:hidden}
+.fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:shine 1.4s linear infinite}
+@keyframes shine{to{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="win" id="win">
+  <div class="bg"><i></i><i></i><i></i></div>
+
+  <div class="top" id="top">
+    <span class="brand" id="drag1">
+      <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><rect x="8" y="18" width="6" height="6" rx="1.2" fill="#fff"/><path d="M15 12H21V18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6H26V17" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="t-title">Reescaller</span>
+    </span>
+    <span class="sp" id="drag2"></span>
+    <button class="wc" id="b-min" aria-label="Minimizar"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button>
+    <button class="wc close" id="b-close" aria-label="Cerrar"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+  </div>
+
+  <div class="stage">
+    <!-- bienvenida -->
+    <div class="view on" id="v-welcome">
+      <div class="hero">
+        <div>
+          <div class="logo"><svg viewBox="0 0 32 32"><rect x="8" y="18" width="6" height="6" rx="1.2" fill="#fff"/><path d="M15 12H21V18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6H26V17" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h1>Reescaller</h1>
+          <p class="lead" data-i="lead">Mejora tus imágenes y videos con inteligencia artificial. Todo en tu equipo.</p>
+          <div class="chips"><span class="chip" data-i="c1">Imágenes nítidas</span><span class="chip" data-i="c2">Retratos completos</span><span class="chip" data-i="c3">Video</span><span class="chip" data-i="c4">10 idiomas</span></div>
+        </div>
+        <div class="mock">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="art"><div class="layer before"></div><div class="layer after"></div><div class="div"></div><span class="tag l" data-i="before">Antes</span><span class="tag r" data-i="after">Después</span></div>
+          <div class="meta"><span>×4</span><span data-i="ai">IA</span><span>PNG · JPG</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- instalando -->
+    <div class="view" id="v-run">
+      <div class="slides" id="slides">
+        <div class="slide on"><div><div class="kick" data-i="s1k">Imágenes</div><h2 data-i="s1t">Detalle que no sabías que tenías</h2><p data-i="s1p">La IA añade nitidez y textura reales a fotos pequeñas, borrosas o antiguas.</p></div>
+          <div class="vis v1"><div class="art"><div class="layer before"></div><div class="layer after"></div><div class="div"></div><span class="tag l" data-i="before">Antes</span><span class="tag r" data-i="after">Después</span></div></div></div>
+        <div class="slide"><div><div class="kick" data-i="s2k">Retratos</div><h2 data-i="s2t">Rostro, pelo, ropa y fondo</h2><p data-i="s2p">Restaura la cara y mejora todo el retrato. En fotos oscuras, además, aclara y limpia el ruido.</p></div>
+          <div class="vis v2"><div class="ring"></div><div class="ring b"></div><div class="face"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14c.9 1.3 2 2 3.5 2s2.6-.7 3.5-2"/><circle cx="9.3" cy="10" r=".7" fill="#fff"/><circle cx="14.7" cy="10" r=".7" fill="#fff"/></svg></div>
+            <div class="tags"><span data-i="t_face">Rostro</span><span data-i="t_hair">Pelo</span><span data-i="t_bg">Fondo</span></div></div></div>
+        <div class="slide"><div><div class="kick" data-i="s3k">Video</div><h2 data-i="s3t">Mejora, convierte y recorta</h2><p data-i="s3p">Mejora un video fotograma a fotograma, conviértelo a MP4, WebM, GIF o MP3 y corta el tramo que quieras.</p></div>
+          <div class="vis v3"><div class="film"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="fmt"><b>MP4</b><b>WebM</b><b>GIF</b><b>MP3</b></div></div></div>
+        <div class="slide"><div><div class="kick" data-i="s4k">Tu estilo</div><h2 data-i="s4t">Temas, idiomas y tus propios colores</h2><p data-i="s4p">Ocho temas, claro y oscuro, fondo animado y un tema personalizado. Disponible en 10 idiomas.</p></div>
+          <div class="vis v4"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="slide"><div><div class="kick" data-i="s5k">Privado</div><h2 data-i="s5t">Todo se queda en tu equipo</h2><p data-i="s5p">Tus fotos y videos no se suben a ningún servidor. Funciona sin conexión a internet.</p></div>
+          <div class="vis v5"><div class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><div class="tags"><span data-i="t_local">Local</span><span data-i="t_offline">Sin internet</span></div></div></div>
+      </div>
+      <div class="dotsnav" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <!-- final -->
+    <div class="view" id="v-done">
+      <div class="center">
+        <div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+        <h2 id="done-title">¡Todo listo!</h2>
+        <p id="done-text"></p>
+        <div class="note hidden" id="done-note"></div>
+      </div>
+    </div>
+
+    <!-- error -->
+    <div class="view" id="v-err">
+      <div class="center">
+        <div class="check err"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+        <h2 data-i="err_t">No se pudo completar</h2>
+        <div class="errbox" id="err-msg"></div>
+      </div>
+    </div>
+
+    <!-- desinstalar -->
+    <div class="view" id="v-un">
+      <div class="center">
+        <div class="check" style="background:linear-gradient(135deg,var(--c3),var(--c1))"><svg viewBox="0 0 24 24" style="stroke-dasharray:none;stroke-dashoffset:0;animation:none"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg></div>
+        <h2 data-i="un_t">¿Desinstalar Reescaller?</h2>
+        <p data-i="un_p">Se quitarán la aplicación, los accesos directos y la entrada de «Aplicaciones instaladas».</p>
+        <label class="check-row" style="margin-top:18px"><span class="tgl"><input type="checkbox" id="purge" /><i></i></span><span style="text-align:left"><b data-i="un_purge">Borrar también mis ajustes</b><small data-i="un_purge2">Configuración, tema, idioma y caché.</small></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- opciones (se despliegan sobre la barra) -->
+  <div class="opts" id="opts">
+    <h3 data-i="o_title">Opciones de instalación</h3>
+    <div class="row"><input type="text" id="o-dir" spellcheck="false" /><button class="btn ghost" id="o-pick" style="padding:9px 18px;font-size:14px" data-i="o_change">Cambiar…</button></div>
+    <label class="check-row"><span class="tgl"><input type="checkbox" id="o-faces" checked /><i></i></span><span><b data-i="o_faces">Restauración de rostros</b><small id="o-faces-sub"></small></span></label>
+    <label class="check-row"><span class="tgl"><input type="checkbox" id="o-desktop" checked /><i></i></span><span><b data-i="o_desktop">Acceso directo en el escritorio</b></span></label>
+  </div>
+
+  <!-- barra inferior -->
+  <div class="bar" id="bar">
+    <div id="bar-welcome" style="display:flex;align-items:center;gap:20px;width:100%">
+      <button class="opts-toggle" id="b-opts"><span data-i="options">Opciones</span><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></button>
+      <span class="legal" id="legal" data-i="legal">Instalación solo para tu usuario: no necesita permisos de administrador.</span>
+      <span class="sp"></span>
+      <button class="btn primary" id="b-install" data-i="install">Aceptar e instalar</button>
+    </div>
+    <div id="bar-run" class="prog hidden">
+      <div class="line"><span class="what" id="p-what">…</span><span><span data-i="eta">Tiempo restante</span>: <b id="p-eta">--:--</b></span><b id="p-pct">0%</b></div>
+      <div class="track"><div class="fill" id="p-fill"></div></div>
+    </div>
+    <div id="bar-done" class="hidden" style="display:none;align-items:center;gap:14px;width:100%">
+      <span class="legal" id="done-legal"></span><span class="sp"></span>
+      <button class="btn ghost" id="b-close2" data-i="close">Cerrar</button>
+      <button class="btn primary" id="b-launch" data-i="launch">Abrir Reescaller</button>
+    </div>
+    <div id="bar-err" class="hidden" style="display:none;align-items:center;gap:14px;width:100%">
+      <span class="sp"></span>
+      <button class="btn ghost" id="b-close3" data-i="close">Cerrar</button>
+      <button class="btn primary" id="b-retry" data-i="retry">Reintentar</button>
+    </div>
+    <div id="bar-un" class="hidden" style="display:none;align-items:center;gap:14px;width:100%">
+      <span class="sp"></span>
+      <button class="btn ghost" id="b-close4" data-i="cancel">Cancelar</button>
+      <button class="btn primary" id="b-uninstall" style="background:linear-gradient(135deg,#ef4444,#f59e0b)" data-i="uninstall">Desinstalar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const T = {
+  es:{lead:'Mejora tus imágenes y videos con inteligencia artificial. Todo en tu equipo.',c1:'Imágenes nítidas',c2:'Retratos completos',c3:'Video',c4:'10 idiomas',before:'Antes',after:'Después',ai:'IA',
+    options:'Opciones',legal:'Instalación solo para tu usuario: no necesita permisos de administrador.',install:'Aceptar e instalar',eta:'Tiempo restante',close:'Cerrar',launch:'Abrir Reescaller',retry:'Reintentar',cancel:'Cancelar',uninstall:'Desinstalar',
+    s1k:'Imágenes',s1t:'Detalle que no sabías que tenías',s1p:'La IA añade nitidez y textura reales a fotos pequeñas, borrosas o antiguas.',
+    s2k:'Retratos',s2t:'Rostro, pelo, ropa y fondo',s2p:'Restaura la cara y mejora todo el retrato. En fotos oscuras, además, aclara y limpia el ruido.',t_face:'Rostro',t_hair:'Pelo',t_bg:'Fondo',
+    s3k:'Video',s3t:'Mejora, convierte y recorta',s3p:'Mejora un video fotograma a fotograma, conviértelo a MP4, WebM, GIF o MP3 y corta el tramo que quieras.',
+    s4k:'Tu estilo',s4t:'Temas, idiomas y tus propios colores',s4p:'Ocho temas, claro y oscuro, fondo animado y un tema personalizado. Disponible en 10 idiomas.',
+    s5k:'Privado',s5t:'Todo se queda en tu equipo',s5p:'Tus fotos y videos no se suben a ningún servidor. Funciona sin conexión a internet.',t_local:'Local',t_offline:'Sin internet',
+    o_title:'Opciones de instalación',o_change:'Cambiar…',o_faces:'Restauración de rostros',o_desktop:'Acceso directo en el escritorio',o_launch:'Abrir Reescaller al terminar',
+    copying:'Copiando',finishing:'Terminando…',preparing:'Dejando todo listo…',done_t:'¡Todo listo!',done_p:'Reescaller se instaló correctamente. Arrastra una imagen a la ventana, pégala con Ctrl+V o elige un archivo para empezar.',
+    undone_t:'Reescaller se desinstaló',undone_p:'Gracias por probarlo. Puedes volver a instalarlo cuando quieras.',novulkan:'No se encontró un driver de GPU con Vulkan. Reescaller funcionará, pero sin la mejora por IA hasta que instales o actualices el driver de tu tarjeta gráfica (NVIDIA GTX 600 o superior, AMD RX 400/500 o superior, Intel Arc).',
+    err_t:'No se pudo completar',un_t:'¿Desinstalar Reescaller?',un_p:'Se quitarán la aplicación, los accesos directos y la entrada de «Aplicaciones instaladas».',un_purge:'Borrar también mis ajustes',un_purge2:'Configuración, tema, idioma y caché.',
+    faces_sub:'Modelos para restaurar caras (≈ {0})',title_in:'Instalar Reescaller',title_un:'Desinstalar Reescaller',nopayload:'Este instalador está incompleto. Descárgalo de nuevo.',removing:'Quitando',installed_in:'Instalado en {0}'},
+  en:{lead:'Enhance your images and videos with artificial intelligence. Everything on your computer.',c1:'Sharp images',c2:'Full portraits',c3:'Video',c4:'10 languages',before:'Before',after:'After',ai:'AI',
+    options:'Options',legal:'Installs for your user only: no administrator rights needed.',install:'Accept and install',eta:'Time remaining',close:'Close',launch:'Open Reescaller',retry:'Try again',cancel:'Cancel',uninstall:'Uninstall',
+    s1k:'Images',s1t:'Detail you never knew you had',s1p:'AI adds real sharpness and texture to small, blurry or old photos.',
+    s2k:'Portraits',s2t:'Face, hair, clothes and background',s2p:'Restores the face and enhances the whole portrait. Dark photos are also brightened and cleaned of noise.',t_face:'Face',t_hair:'Hair',t_bg:'Background',
+    s3k:'Video',s3t:'Enhance, convert and trim',s3p:'Enhance a video frame by frame, convert it to MP4, WebM, GIF or MP3 and cut the part you want.',
+    s4k:'Your style',s4t:'Themes, languages and your own colors',s4p:'Eight themes, light and dark, animated background and a custom theme. Available in 10 languages.',
+    s5k:'Private',s5t:'Everything stays on your computer',s5p:'Your photos and videos are never uploaded to any server. Works without an internet connection.',t_local:'Local',t_offline:'Offline',
+    o_title:'Installation options',o_change:'Change…',o_faces:'Face restoration',o_desktop:'Desktop shortcut',o_launch:'Open Reescaller when finished',
+    copying:'Copying',finishing:'Finishing…',preparing:'Getting everything ready…',done_t:'All set!',done_p:'Reescaller was installed successfully. Drag an image onto the window, paste it with Ctrl+V or choose a file to get started.',
+    undone_t:'Reescaller was uninstalled',undone_p:'Thanks for trying it. You can install it again whenever you like.',novulkan:'No GPU driver with Vulkan was found. Reescaller will work, but without AI enhancement until you install or update your graphics driver (NVIDIA GTX 600 or newer, AMD RX 400/500 or newer, Intel Arc).',
+    err_t:'Could not complete',un_t:'Uninstall Reescaller?',un_p:'The app, its shortcuts and its “Installed apps” entry will be removed.',un_purge:'Also delete my settings',un_purge2:'Configuration, theme, language and cache.',
+    faces_sub:'Models to restore faces (≈ {0})',title_in:'Install Reescaller',title_un:'Uninstall Reescaller',nopayload:'This installer is incomplete. Please download it again.',removing:'Removing',installed_in:'Installed in {0}'}
+};
+const lang = (navigator.language || 'es').toLowerCase().startsWith('en') ? 'en' : 'es';
+const tr = (k, ...a) => { let v = (T[lang][k] ?? T.es[k] ?? k); a.forEach((x, i) => v = v.replace('{' + i + '}', x)); return v; };
+document.documentElement.lang = lang;
+document.querySelectorAll('[data-i]').forEach(el => { el.textContent = tr(el.dataset.i); });
+const $ = id => document.getElementById(id);
+const post = o => window.ipc.postMessage(JSON.stringify(o));
+
+/* arrastrar y botones de la ventana */
+['drag1', 'drag2', 'win'].forEach(id => $(id).addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  if(id === 'win' && !(e.target === $('win') || e.target.classList.contains('stage') || e.target.classList.contains('bg') || e.target.closest('.hero') && !e.target.closest('button'))) return;
+  if(id === 'win' && e.clientY > 150) return;
+  post({ cmd: 'drag' });
+}));
+$('b-min').onclick = () => post({ cmd: 'min' });
+$('b-close').onclick = () => { if(state === 'run') return; post({ cmd: 'close' }); };
+['b-close2', 'b-close3', 'b-close4'].forEach(id => $(id).onclick = () => post({ cmd: 'close' }));
+
+let state = 'welcome', info = { mode: 'install', dir: '', total: 0, faces: 0, vulkan: true, payload: true }, dirInstalacion = '';
+const fmtMB = b => b >= 1073741824 ? (b / 1073741824).toFixed(1) + ' GB' : Math.max(1, Math.round(b / 1048576)) + ' MB';
+const fmtTime = s => { s = Math.max(0, Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+function show(view, bar){
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + view));
+  ['welcome', 'run', 'done', 'err', 'un'].forEach(b => {
+    const el = $('bar-' + b); const on = b === bar;
+    el.classList.toggle('hidden', !on); el.style.display = on ? 'flex' : 'none';
+  });
+}
+
+/* diapositivas con cambio de paleta */
+const PAL = [['#8b5cf6', '#22d3ee', '#f472b6'], ['#c9349b', '#ff9b55', '#7b208f'], ['#18961c', '#9bf00b', '#0b6b3a'], ['#0070d1', '#28aaff', '#ec407a'],
+             ['#ff224a', '#1cdeee', '#ffd60a'], ['#8a40e0', '#70ff48', '#ff961e'], ['#d62814', '#ff8c14', '#ffc828']];
+let slideIdx = 0, slideTimer = null, palIdx = 0;
+const SLIDE_MS = 6500;            // tiempo de lectura de cada diapositiva
+const MIN_MS = SLIDE_MS * 5 + 500; // la instalación se muestra al menos lo que dura la presentación completa (5 diapositivas)
+function setPal(i){ const p = PAL[i % PAL.length]; document.body.style.setProperty('--c1', p[0]); document.body.style.setProperty('--c2', p[1]); document.body.style.setProperty('--c3', p[2]); }
+function startSlides(){
+  const sl = [...document.querySelectorAll('.slide')], dots = [...document.querySelectorAll('#dots i')];
+  const go = i => { slideIdx = i % sl.length; sl.forEach((s, k) => s.classList.toggle('on', k === slideIdx)); dots.forEach((d, k) => d.classList.toggle('on', k === slideIdx)); setPal(++palIdx); };
+  const arrancar = () => { clearInterval(slideTimer); slideTimer = setInterval(() => go(slideIdx + 1), SLIDE_MS); };
+  dots.forEach((d, k) => d.onclick = () => { go(k); arrancar(); });   // los puntos permiten volver a leer una diapositiva
+  go(0); arrancar();
+}
+setInterval(() => { if(state === 'welcome') setPal(++palIdx); }, 6500);
+
+/* opciones */
+$('b-opts').onclick = () => { $('opts').classList.toggle('open'); $('b-opts').classList.toggle('open'); };
+document.addEventListener('mousedown', e => { if(!e.target.closest('#opts') && !e.target.closest('#b-opts')){ $('opts').classList.remove('open'); $('b-opts').classList.remove('open'); } });
+$('o-pick').onclick = () => post({ cmd: 'pickdir', dir: $('o-dir').value });
+
+function mostrarError(msg){ state = 'err'; clearInterval(slideTimer); $('err-msg').textContent = msg; show('err', 'err'); $('b-close').style.opacity = 1; }
+function instalar(){
+  const dir = $('o-dir').value.trim();
+  if(!dir){ $('opts').classList.add('open'); return; }
+  dirInstalacion = dir; state = 'run'; $('opts').classList.remove('open'); $('b-opts').classList.remove('open');
+  $('b-close').style.opacity = .35;
+  show('run', 'run'); startSlides(); iniciarProgreso();
+  $('p-what').textContent = tr('copying') + '…'; $('p-fill').style.width = '0%'; $('p-pct').textContent = '0%'; $('p-eta').textContent = '--:--';
+  post({ cmd: 'install', dir, faces: $('o-faces').checked, desktop: $('o-desktop').checked });
+}
+$('b-install').onclick = instalar;
+$('b-retry').onclick = () => { state = 'welcome'; show('welcome', 'welcome'); };
+$('b-launch').onclick = () => post({ cmd: 'launch', dir: dirInstalacion });
+$('b-uninstall').onclick = () => { state = 'run'; $('b-close').style.opacity = .35; show('run', 'run'); startSlides(); iniciarProgreso(); $('p-what').textContent = tr('removing') + '…'; post({ cmd: 'uninstall', purge: $('purge').checked }); };
+
+/* El progreso mostrado va acompasado con la presentación: avanza como mucho al ritmo del tiempo mínimo, de modo que
+   da tiempo a leer cada función aunque el disco copie los archivos en segundos. Al desinstalar no se retrasa. */
+let real = { pct: 0, file: '', eta: 0 }, finalPendiente = null, t0 = 0, tickTimer = null;
+function iniciarProgreso(){
+  real = { pct: 0, file: '', eta: 0 }; finalPendiente = null; t0 = Date.now();
+  clearInterval(tickTimer); tickTimer = setInterval(tick, 150);
+}
+function tick(){
+  if(state !== 'run') return;
+  const el = Date.now() - t0, minMs = info.mode === 'uninstall' ? 0 : MIN_MS;
+  const paced = minMs ? Math.min(100, el / minMs * 100) : 100;
+  const p = Math.min(real.pct, paced);
+  $('p-fill').style.width = p + '%'; $('p-pct').textContent = Math.floor(p) + '%';
+  const listo = finalPendiente !== null;
+  $('p-what').textContent = listo || real.step === 'shortcuts' ? tr(info.mode === 'uninstall' ? 'finishing' : 'preparing')
+    : (info.mode === 'uninstall' ? tr('removing') : tr('copying')) + ' ' + (real.file || '');
+  const eta = Math.max(real.eta || 0, (minMs - el) / 1000);
+  $('p-eta').textContent = p < 99.5 ? fmtTime(eta) : '--:--';
+  if(listo && p >= 100){ const d = finalPendiente; finalPendiente = null; clearInterval(tickTimer); terminar(d); }
+}
+
+window.__ev = ev => {
+  if(ev.ev === 'init'){
+    info = ev; $('o-dir').value = ev.dir; dirInstalacion = ev.dir;
+    if(ev.mode === 'uninstall'){ state = 'un'; document.title = tr('title_un'); $('t-title').textContent = tr('title_un'); show('un', 'un'); }
+    else {
+      document.title = tr('title_in'); $('t-title').textContent = tr('title_in');
+      $('o-faces-sub').textContent = tr('faces_sub', fmtMB(ev.faces || 0));
+      if(!ev.faces){ $('o-faces').checked = false; $('o-faces').disabled = true; }
+      if(!ev.payload){ mostrarError(tr('nopayload')); }
+    }
+    post({ cmd: 'ready' });
+  } else if(ev.ev === 'dir'){ $('o-dir').value = ev.dir; }
+  else if(ev.ev === 'progress'){
+    real = { pct: Math.min(100, ev.pct || 0), file: ev.file || '', eta: ev.eta || 0, step: ev.step };
+  } else if(ev.ev === 'done'){
+    real.pct = 100; finalPendiente = ev;   // la pantalla final aparece cuando la barra mostrada llega al 100 %
+  } else if(ev.ev === 'error'){ clearInterval(tickTimer); mostrarError(ev.message || '?'); }
+};
+/* Pantalla final: la app NO se abre sola; el usuario decide con «Abrir Reescaller» (o «Cerrar»). */
+function terminar(ev){
+  clearInterval(slideTimer); state = 'done'; $('b-close').style.opacity = 1;
+  const un = info.mode === 'uninstall';
+  if(ev.dir) dirInstalacion = ev.dir;
+  $('done-title').textContent = un ? tr('undone_t') : tr('done_t');
+  $('done-text').textContent = un ? tr('undone_p') : tr('done_p');
+  const nota = $('done-note');
+  if(!un && (ev.warnings || []).includes('novulkan')){ nota.textContent = tr('novulkan'); nota.classList.remove('hidden'); } else nota.classList.add('hidden');
+  $('done-legal').textContent = un ? '' : tr('installed_in', dirInstalacion);
+  $('b-launch').style.display = un ? 'none' : '';
+  show('done', 'done');
+}
+document.addEventListener('contextmenu', e => e.preventDefault());
+setPal(0);
+post({ cmd: 'init' });
+</script>
+</body>
+</html>

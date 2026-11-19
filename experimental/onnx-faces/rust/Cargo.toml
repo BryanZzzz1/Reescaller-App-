@@ -1,0 +1,17 @@
+[package]
+name = "onnx-faces"
+version = "0.1.0"
+edition = "2021"
+description = "Prueba de concepto: restauración de rostros 100 % Rust (ONNX Runtime + DirectML), sin Python ni torch."
+
+# Proyecto independiente: no forma parte del workspace principal de la app.
+[workspace]
+
+[dependencies]
+image = "0.25"
+anyhow = "1"
+ort = { version = "=2.0.0-rc.10", default-features = false, features = ["load-dynamic", "directml"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
