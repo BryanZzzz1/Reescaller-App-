@@ -13,8 +13,10 @@ Leyenda: 🔴 bloquea una versión pública · 🟡 importante · 🟢 deseable
 - 🟡 Recorrer con clics los botones de ventana (minimizar, cerrar), el arrastre y la confirmación al cerrar con un trabajo en curso.
 
 **Distribución**
-- 🔴 Añadir el archivo `LICENSE` (el workspace declara MIT) y revisar las licencias de terceros: Real-ESRGAN, FFmpeg (según la compilación incluida), GFPGAN, RestoreFormer++, ONNX Runtime y DirectML. Incluir un `THIRD_PARTY_NOTICES`.
-- 🟡 **Firma de código** del instalador, el desinstalador y `Reescaller.exe` para evitar el aviso de SmartScreen.
+- ✅ `LICENSE` (MIT), `THIRD_PARTY_NOTICES.md` y `licenses/` hechos: FFmpeg es GPL v3 (se adjunta su código fuente a cada release), los modelos de rostros tienen un aviso de uso comercial. Falta: que el titular confirme el nombre en `LICENSE` (hoy «Reescaller contributors») y la oferta de código fuente de FFmpeg (3 años, vía *issues*).
+- 🟡 **Decidir el uso comercial de la restauración de rostros**: GFPGAN incluye componentes no comerciales (StyleGAN2, DFDNet) y ambos modelos se entrenaron con FFHQ. Si Reescaller se va a vender, sustituirlos por un modelo con licencia comercial clara o pedir permiso a los autores.
+- 🟡 **Firma de código** del instalador, el desinstalador y `Reescaller.exe` para evitar el aviso de SmartScreen. El empaquetado ya firma solo si hay certificado (`scripts\sign.ps1`, variables `REESCALLER_SIGN_PFX`/`REESCALLER_SIGN_PASSWORD` o `REESCALLER_SIGN_THUMBPRINT`). Falta conseguir el certificado: opciones habituales son un certificado de una autoridad (OV o EV, de pago, anual; EV tiene reputación inmediata ante SmartScreen y OV la va ganando con las descargas), *Azure Trusted Signing* (suscripción mensual; la disponibilidad para particulares depende del país) o *SignPath Foundation* (gratis para proyectos de código abierto, previa solicitud y compilando desde CI).
+- 🟡 Sustituir el FFmpeg GPL por una build LGPL (sin x264/x265) si se quiere evitar las obligaciones de la GPL; implicaría cambiar el códec de salida.
 - 🟡 Publicar la *release* (instalador + ZIP portable + `models/` como descarga aparte) y mover los activos pesados fuera del repositorio.
 - 🟢 Incluir `vc_redist.x64.exe` como respaldo si el equipo no tiene el runtime de Visual C++.
 

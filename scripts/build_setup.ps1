@@ -54,6 +54,15 @@ if ($firma.Status -ne "Valid" -or $firma.SignerCertificate.Subject -notmatch "Mi
 }
 
 Write-Host "[3/3] Empaquetando la app dentro del instalador..." -ForegroundColor Cyan
-& python -I (Join-Path $PSScriptRoot "pack_setup.py") $launcher $ui $loader $app $wv2 $Out
+# Firma (opcional, ver scripts\sign.ps1): la interfaz del instalador/desinstalador se firma antes de meterla en el ZIP
+# y el instalador final se firma al terminar (Authenticode cubre el ZIP añadido, que queda dentro del archivo firmado).
+$tmpUi = Join-Path ([IO.Path]::GetTempPath()) "reescaller-setup-ui.exe"
+Copy-Item $ui $tmpUi -Force
+& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "sign.ps1") $tmpUi
+if ($LASTEXITCODE -ne 0) { throw "Falló la firma de la interfaz del instalador." }
+& python -I (Join-Path $PSScriptRoot "pack_setup.py") $launcher $tmpUi $loader $app $wv2 $Out
 if ($LASTEXITCODE -ne 0) { throw "No se pudo crear el instalador." }
+Remove-Item $tmpUi -Force -ErrorAction SilentlyContinue
+& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "sign.ps1") $Out
+if ($LASTEXITCODE -ne 0) { throw "Falló la firma del instalador." }
 Write-Host "Listo: $Out" -ForegroundColor Green

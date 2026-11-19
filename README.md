@@ -125,6 +125,9 @@ scripts/                     build_dist.ps1, build_setup.ps1, pack_setup.py, pue
 installer/                   instalador alternativo (Inno Setup) y sus imágenes
 experimental/onnx-faces/     exportación de los modelos de rostros a ONNX
 docs/                        auditoría y ruta de migración nativa
+LICENSE                      licencia MIT del código propio
+THIRD_PARTY_NOTICES.md       licencias y avisos de los componentes de terceros
+licenses/                    textos originales de esas licencias (+ RUST_CRATES.txt, generado)
 PROJECT.md                   bitácora técnica detallada del proyecto
 ROADMAP.md                   próximos pasos
 All.py, requirements.txt     aplicación original en Python (legado)
@@ -140,9 +143,9 @@ All.py, requirements.txt     aplicación original en Python (legado)
 ## Estado y limitaciones
 
 - Versión **0.3.0**, en pruebas. El hardware probado es un PC con CPU Intel y GPU AMD RX 6600 (Windows 11): **NVIDIA, Intel Arc y portátiles con gráfica híbrida no se han probado**, ni Windows 10 en un equipo limpio.
-- El ejecutable y el instalador no están firmados.
+- El ejecutable y el instalador **no están firmados** (el empaquetado ya admite firma: `scripts\sign.ps1`, ver [`ROADMAP.md`](ROADMAP.md)).
 - Al guardar en PNG se pierde el canal alfa, y en lotes dos archivos con el mismo nombre y distinta extensión (`a.png` y `a.jpg`) pueden pisarse.
-- Revisa las licencias de los componentes de terceros (Real-ESRGAN, FFmpeg, GFPGAN, RestoreFormer++, ONNX Runtime, DirectML) antes de redistribuir.
+- Licencias de terceros revisadas con sus fuentes (no es asesoría legal): ver [Licencia](#licencia).
 
 Si encuentras un problema, abre un *issue* indicando tu GPU, versión de Windows y el contenido de `reescaller-cli.exe doctor`.
 
@@ -152,4 +155,8 @@ Si encuentras un problema, abre un *issue* indicando tu GPU, versión de Windows
 
 ## Licencia
 
-El workspace declara licencia **MIT** en `rust/Cargo.toml`. Falta añadir el archivo `LICENSE` con el titular de los derechos (ver [`ROADMAP.md`](ROADMAP.md)).
+El código de Reescaller es **MIT** ([`LICENSE`](LICENSE)). La aplicación incluye programas y modelos de terceros con sus propias licencias; el detalle, los textos originales y el código fuente de FFmpeg están en [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) y en [`licenses/`](licenses/) (también se instalan junto a la app).
+
+Puntos a tener en cuenta:
+- **FFmpeg** va como programa independiente bajo **GPL v3** (build de gyan.dev). Cada *release* adjunta el código fuente de FFmpeg 8.0.
+- **Restauración de rostros**: GFPGAN y RestoreFormer++ se entrenaron con FFHQ, y GFPGAN incluye componentes de uso no comercial. Para uso personal no hay impedimento; para un uso **comercial** consulta antes `THIRD_PARTY_NOTICES.md`. El instalador permite omitir ese componente.

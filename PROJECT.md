@@ -1080,6 +1080,13 @@ no comercial (revisar antes de un uso comercial).
   unitarios en verde. `README.md` reescrito para la app Rust (el Python queda como legado), `ROADMAP.md` nuevo, `.gitignore` con `installer/redist/`, y `scripts\make_source.ps1` crea
   `dist\Reescaller-<ver>-source.zip` (solo lo que Git versionaría, ~1 MB) y `dist\SHA256SUMS.txt`. Entregables de `dist\`: `Reescaller\` (portable), `-win64.zip` (835 MB), `-Setup.exe`
   (899 MB, instalador propio), `-Setup-Inno.exe` (815 MB) y `-source.zip`. Instalador final verificado en silencio (999 MB, versión 0.3.0, rostros incluidos, desinstalación limpia).
+- **Licencias y firma** (ronda 16.28): revisión de lo que se redistribuye contra las fuentes de cada proyecto → `LICENSE` (MIT), `THIRD_PARTY_NOTICES.md` y `licenses/` (textos originales + `RUST_CRATES.txt`
+  generado con `scripts\gen_third_party.py`: 227 crates, todos permisivos salvo `option-ext` MPL-2.0 sin modificar). Hallazgos: **FFmpeg es una build GPL v3** (gyan.dev *essentials*, x264/x265) → se ejecuta como programa
+  aparte, se incluye el texto GPL y se adjunta `ffmpeg-8.0.tar.xz` a cada release con oferta de código fuente; **GFPGAN** lista componentes de terceros no comerciales (StyleGAN2/NVIDIA, DFDNet CC BY-NC-SA) y
+  ambos modelos de rostros se entrenaron con FFHQ → aviso de uso comercial (decisión pendiente, ver ROADMAP); DirectML se puede redistribuir en apps para Windows; Real-ESRGAN (BSD-3) y ncnn-vulkan (MIT) sin
+  restricciones. `build_dist.ps1` copia todo a `dist\Reescaller\` (portable, ZIP e instaladores). **Firma de código**: `scripts\sign.ps1` firma con Authenticode + sello de tiempo si hay certificado
+  (`REESCALLER_SIGN_PFX`/`_PASSWORD` o `REESCALLER_SIGN_THUMBPRINT`) y `build_dist`/`build_setup` lo llaman; sin certificado no hace nada. Probado con un certificado autofirmado temporal: el instalador queda firmado
+  y el ZIP añadido sigue leyéndose (instalación y desinstalación correctas). Falta el certificado real (de pago o SignPath para código abierto).
 - Campos nuevos en `config.json`: `language` (`auto` por defecto) y `animated_theme` (`true`); ambos con valor por defecto para que
   las configuraciones antiguas sigan cargando.
 

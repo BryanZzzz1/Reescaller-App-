@@ -107,8 +107,19 @@ if ($WithOnnx) {
     }
 }
 
+# --- 3b2) licencias: la de Reescaller, los avisos de terceros y los textos originales (obligatorio al redistribuir FFmpeg GPL, modelos, etc.) ---
+Copy-Item (Join-Path $root "LICENSE") (Join-Path $dist "LICENSE.txt")
+Copy-Item (Join-Path $root "THIRD_PARTY_NOTICES.md") (Join-Path $dist "THIRD_PARTY_NOTICES.md")
+$licSrc = Join-Path $root "licenses"
+if (-not (Test-Path (Join-Path $licSrc "RUST_CRATES.txt"))) { throw "Falta licenses\RUST_CRATES.txt (python -I scripts\gen_third_party.py)." }
+Copy-Item $licSrc (Join-Path $dist "licenses") -Recurse
+
 # --- 3c) quitar la marca «descargado de Internet» (evita el aviso de seguridad de Windows al lanzar el motor) ---
 Get-ChildItem $dist -Recurse -File | Unblock-File
+
+# --- 3d) firma de código (opcional; sin certificado configurado no hace nada; ver scripts\sign.ps1) ---
+& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "sign.ps1") (Join-Path $dist "Reescaller.exe") (Join-Path $dist "reescaller-cli.exe")
+if ($LASTEXITCODE -ne 0) { throw "Falló la firma de los ejecutables." }
 
 # --- 4) documentación y zip ----------------------------------------------------------
 Write-Host "[4/5] Documentación y ZIP..." -ForegroundColor Cyan
@@ -133,10 +144,11 @@ LINEA DE COMANDOS
   reescaller-cli.exe doctor              diagnostico del equipo
   reescaller-cli.exe --help
 
-LICENCIAS DE TERCEROS
-  - Real-ESRGAN ncnn Vulkan (MIT) - https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan
-  - FFmpeg - https://ffmpeg.org (revisa la licencia de la compilacion incluida antes de redistribuir)
-  - vcomp140.dll es el runtime OpenMP de Microsoft Visual C++ (redistribuible).
+LICENCIAS
+  - Reescaller: MIT (LICENSE.txt).
+  - Componentes de terceros (FFmpeg GPL v3, Real-ESRGAN, GFPGAN, RestoreFormer++, ONNX Runtime, DirectML, etc.):
+    ver THIRD_PARTY_NOTICES.md y la carpeta licenses\ . IMPORTANTE: los modelos de rostros pueden tener
+    restricciones de uso comercial (detalle en THIRD_PARTY_NOTICES.md).
 "@ | Set-Content -Encoding UTF8 (Join-Path $dist "LEEME.txt")
 
 if ($NoZip) {
